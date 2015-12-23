@@ -30,12 +30,33 @@ printHTML log = do header <- readFile "head.html"
         printDay ls = do
           putStrLn $ "<h3>" ++ wlDate (head ls) ++ "</h3>"
           putStrLn $ "<table>"
-          mapM_ printRow ls
+          mapM_ printRow $ zip (WeechatLine "" "" "" "" : ls) ls
           putStrLn $ "</table>"
-        printRow l = do
-          putStr $ "<tr><td>" ++ wlTime l ++ "</td>"
-          putStr $ "<td>" ++ wlNick l ++ "</td>"
-          putStrLn $ "<td>" ++ escape (wlMsg l) ++ "</td></tr>"
+        printRow (prevRow, curRow) = do
+          putStr $ "<tr><td>" ++ wlTime curRow ++ "</td>"
+          putStr $ "<td class=\"" ++ ac ++ "\">" ++ nick ++ "</td>"
+          putStrLn $ "<td>" ++ escape (wlMsg curRow) ++ "</td></tr>"
+          where prevNick = wlNick prevRow
+                curNick = wlNick curRow
+                nick | specialNick curNick = curNick
+                     | prevNick == curNick = "↳"
+                     | otherwise = curNick
+                ac = nickClass curNick
+
+specialNick = (`elem` ["-->","<--","--","*"])
+
+nickClass "-->" = "nc-join"
+nickClass "<--" = "nc-quit"
+nickClass "--" = "nc-network"
+nickClass "*" = "nc-slashme"
+nickClass str = ("nc-color-" ++) . hash . dropWhile sigil $ str
+
+sigil = (`elem` "@%+")
+-- Weechat default nick hash function = sum of unicode values
+hash = show . (`mod` (length colors)) . sum . map ord
+
+colors = ["cyan","magenta","green","brown","lightblue","default",
+          "lightcyan","lightmagenta","lightgreen","blue"]
 
 escape = concat . map entity
   where entity '<' = "&lt;"
