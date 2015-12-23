@@ -35,8 +35,11 @@ printHTML log = do header <- readFile "head.html"
         printRow l = do
           putStr $ "<tr><td>" ++ wlTime l ++ "</td>"
           putStr $ "<td>" ++ wlNick l ++ "</td>"
-          putStrLn $ "<td>" ++ wlMsg l ++ "</td></tr>"
-        
-          
+          putStrLn $ "<td>" ++ escape (wlMsg l) ++ "</td></tr>"
+
+escape = concat . map entity
+  where entity '<' = "&lt;"
+        entity '>' = "&gt;"
+        entity c = [c]
   
 
