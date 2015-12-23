@@ -1,6 +1,7 @@
 import Data.Char
 import Data.Function
 import Data.List
+import qualified Data.Set as Set
 -- TODO: use Text instead of linked lists of chars
 
 type WeechatLog = [WeechatLine]
@@ -26,7 +27,8 @@ printHTML log = do header <- readFile "head.html"
                    mapM_ printDay days
                    putStrLn "</body>"
                    putStrLn "</html>"
-  where days = groupBy ((==) `on` wlDate) log
+  where allNicks = Set.fromList . map (dropWhile sigil . wlNick) $ log
+        days = groupBy ((==) `on` wlDate) log
         printDay ls = do
           putStrLn $ "<h3>" ++ wlDate (head ls) ++ "</h3>"
           putStrLn $ "<table>"
@@ -35,7 +37,7 @@ printHTML log = do header <- readFile "head.html"
         printRow (prevRow, curRow) = do
           putStr $ "<tr><td>" ++ wlTime curRow ++ "</td>"
           putStr $ "<td class=\"" ++ ac ++ "\">" ++ nick ++ "</td>"
-          putStrLn $ "<td>" ++ escape (wlMsg curRow) ++ "</td></tr>"
+          putStrLn $ "<td>" ++ (colorhl allNicks . escape $ wlMsg curRow) ++ "</td></tr>"
           where prevNick = wlNick prevRow
                 curNick = wlNick curRow
                 nick | specialNick curNick = curNick
@@ -57,6 +59,15 @@ hash = show . (`mod` (length colors)) . sum . map ord
 
 colors = ["cyan","magenta","green","brown","lightblue","default",
           "lightcyan","lightmagenta","lightgreen","blue"]
+
+colorhl allNicks msg
+  | firstWord == "" = msg
+  | last firstWord == ':' && nick `Set.member` allNicks =
+      sigils ++ "<span class=\"nc-color-" ++ hash nick ++ "\">" ++ nick ++ "</span>:" ++ rest
+  | otherwise = msg
+  where (firstWord, rest) = span (not . isSpace) msg
+        (sigils, nick') = span sigil firstWord
+        nick = init nick'
 
 escape = concat . map entity
   where entity '<' = "&lt;"
