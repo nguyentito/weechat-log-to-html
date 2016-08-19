@@ -1,0 +1,6 @@
+*.swp
+*.hi
+*.o
+
+weechat-log-to-html
+*.mod.hs
