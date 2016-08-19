@@ -5,7 +5,13 @@ Should work both with the contents of the `.weechat/logs` directory and the outp
 
 ## Compile
 
-You can use any Haskell compiler to compile this, eg. `ghc`.
+Run
+
+```Bash
+make
+```
+to compile this script. Beware! This Makefile does non-standard things, and
+does not simply call `ghc --make`!
 
 ## Usage
 

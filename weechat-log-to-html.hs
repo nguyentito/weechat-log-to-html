@@ -11,6 +11,15 @@ data WeechatLine = WeechatLine { wlDate :: String
                                , wlMsg :: String }
 -- TODO: specific handling of join/part/network messages
 
+-- INSERT FROM HERE
+-- ^ the compilation process requires the presence of this comment line.
+-- This part will be ERASED before compilation, and replaced by the actual
+-- template
+header = ""
+-- v this line is required as well
+-- INSERT TO HERE
+
+
 main = (printHTML . parseWeechatLog) =<< getContents
 
 parseWeechatLog :: String -> [WeechatLine]
@@ -21,8 +30,7 @@ parseWeechatLog = map parseWeechatLine . lines
           in WeechatLine date time nick msg
 
 printHTML :: [WeechatLine] -> IO ()
-printHTML log = do header <- readFile "head.html"
-                   putStrLn header
+printHTML log = do putStrLn header
                    putStrLn "<body>"
                    mapM_ printDay days
                    putStrLn "</body>"
@@ -37,7 +45,8 @@ printHTML log = do header <- readFile "head.html"
         printRow (prevRow, curRow) = do
           putStr $ "<tr><td>" ++ wlTime curRow ++ "</td>"
           putStr $ "<td class=\"" ++ ac ++ "\">" ++ nick ++ "</td>"
-          putStrLn $ "<td>" ++ (colorhl allNicks . escape $ wlMsg curRow) ++ "</td></tr>"
+          putStrLn $ "<td>" ++ (colorhl allNicks . escape $ wlMsg curRow)
+                   ++ "</td></tr>"
           where prevNick = wlNick prevRow
                 curNick = wlNick curRow
                 nick | specialNick curNick = curNick
@@ -63,7 +72,8 @@ colors = ["cyan","magenta","green","brown","lightblue","default",
 colorhl allNicks msg
   | firstWord == "" = msg
   | last firstWord == ':' && nick `Set.member` allNicks =
-      sigils ++ "<span class=\"nc-color-" ++ hash nick ++ "\">" ++ nick ++ "</span>:" ++ rest
+      sigils ++ "<span class=\"nc-color-" ++ hash nick ++ "\">" ++ nick
+             ++ "</span>:" ++ rest
   | otherwise = msg
   where (firstWord, rest) = span (not . isSpace) msg
         (sigils, nick') = span sigil firstWord
@@ -73,5 +83,3 @@ escape = concat . map entity
   where entity '<' = "&lt;"
         entity '>' = "&gt;"
         entity c = [c]
-  
-
