@@ -11,6 +11,62 @@ data WeechatLine = WeechatLine { wlDate :: String
                                , wlMsg :: String }
 -- TODO: specific handling of join/part/network messages
 
+header = unlines [
+    "<!DOCTYPE html>",
+    "<html>",
+    "  <head>",
+    "    <meta charset=\"UTF-8\" />",
+    "    <title>IRC log</title>",
+    "    <style media=\"screen\" type=\"text/css\">",
+    "      body {",
+    "        font-family: monospace;",
+    "      }",
+    "      tr:nth-child(2n+1) {",
+    "        background-color: #dddddd;",
+    "      }",
+    "      td {",
+    "        padding: 3px 10px;",
+    "      }",
+    "      td:nth-child(2) {",
+    "        font-weight: bold;",
+    "        text-align: right;",
+    "      }",
+    "      table {",
+    "        border-collapse: collapse;",
+    "      }",
+    "",
+    "      .nc-color-0 {",
+    "        color: darkcyan;",
+    "      }",
+    "      .nc-color-1 {",
+    "        color: darkmagenta;",
+    "      }",
+    "      .nc-color-2 {",
+    "        color: darkgreen;",
+    "      }",
+    "      .nc-color-3 {",
+    "        color: brown;",
+    "      }",
+    "      .nc-color-4 {",
+    "        color: blue;",
+    "      }",
+    "      .nc-color-5 {",
+    "      }",
+    "      .nc-color-6 {",
+    "        color: mediumturquoise;",
+    "      }",
+    "      .nc-color-7 {",
+    "        color: magenta;",
+    "      }",
+    "      .nc-color-8 {",
+    "        color: limegreen;",
+    "      }",
+    "      .nc-color-9 {",
+    "        color: darkblue;",
+    "      }",
+    "    </style>",
+    "  </head>" ]
+
 main = (printHTML . parseWeechatLog) =<< getContents
 
 parseWeechatLog :: String -> [WeechatLine]
@@ -21,8 +77,7 @@ parseWeechatLog = map parseWeechatLine . lines
           in WeechatLine date time nick msg
 
 printHTML :: [WeechatLine] -> IO ()
-printHTML log = do header <- readFile "head.html"
-                   putStrLn header
+printHTML log = do putStrLn header
                    putStrLn "<body>"
                    mapM_ printDay days
                    putStrLn "</body>"
@@ -37,7 +92,8 @@ printHTML log = do header <- readFile "head.html"
         printRow (prevRow, curRow) = do
           putStr $ "<tr><td>" ++ wlTime curRow ++ "</td>"
           putStr $ "<td class=\"" ++ ac ++ "\">" ++ nick ++ "</td>"
-          putStrLn $ "<td>" ++ (colorhl allNicks . escape $ wlMsg curRow) ++ "</td></tr>"
+          putStrLn $ "<td>" ++ (colorhl allNicks . escape $ wlMsg curRow)
+                   ++ "</td></tr>"
           where prevNick = wlNick prevRow
                 curNick = wlNick curRow
                 nick | specialNick curNick = curNick
@@ -63,7 +119,8 @@ colors = ["cyan","magenta","green","brown","lightblue","default",
 colorhl allNicks msg
   | firstWord == "" = msg
   | last firstWord == ':' && nick `Set.member` allNicks =
-      sigils ++ "<span class=\"nc-color-" ++ hash nick ++ "\">" ++ nick ++ "</span>:" ++ rest
+      sigils ++ "<span class=\"nc-color-" ++ hash nick ++ "\">" ++ nick
+      ++ "</span>:" ++ rest
   | otherwise = msg
   where (firstWord, rest) = span (not . isSpace) msg
         (sigils, nick') = span sigil firstWord
@@ -73,5 +130,4 @@ escape = concat . map entity
   where entity '<' = "&lt;"
         entity '>' = "&gt;"
         entity c = [c]
-  
 
