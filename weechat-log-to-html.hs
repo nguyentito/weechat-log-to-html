@@ -36,7 +36,6 @@ header = unlines [
     "      table {",
     "        border-collapse: collapse;",
     "      }",
-    "",
     "      .nc-color-0 {",
     "        color: darkcyan;",
     "      }",
