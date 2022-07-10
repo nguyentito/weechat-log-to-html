@@ -1,25 +1,27 @@
+-- weechat-log-to html
+-- just run `ghc weechat-log-to-html.hs` and you're good.
+-- for licensing information see 'LICENSE.txt'
+
 import Data.Char
 import Data.Function
 import Data.List
 import qualified Data.Set as Set
--- TODO: use Text instead of linked lists of chars
 
 type WeechatLog = [WeechatLine]
 data WeechatLine = WeechatLine { wlDate :: String
                                , wlTime :: String
                                , wlNick :: String
                                , wlMsg :: String }
--- TODO: specific handling of join/part/network messages
-
 header = unlines [
     "<!DOCTYPE html>",
     "<html>",
     "  <head>",
-    "    <meta charset=\"UTF-8\" />",
+    "    <meta charset=\"UTF-8\">",
+    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
     "    <title>IRC log</title>",
     "    <style media=\"screen\" type=\"text/css\">",
     "      body {",
-    "        font-family: monospace;",
+    "        font-family: 'Roboto Mono', monospace, sans-serif;",
     "      }",
     "      tr:nth-child(2n+1) {",
     "        background-color: #dddddd;",
@@ -34,7 +36,6 @@ header = unlines [
     "      table {",
     "        border-collapse: collapse;",
     "      }",
-    "",
     "      .nc-color-0 {",
     "        color: darkcyan;",
     "      }",
@@ -45,7 +46,7 @@ header = unlines [
     "        color: darkgreen;",
     "      }",
     "      .nc-color-3 {",
-    "        color: brown;",
+    "        color: darkred;",
     "      }",
     "      .nc-color-4 {",
     "        color: blue;",
@@ -53,19 +54,31 @@ header = unlines [
     "      .nc-color-5 {",
     "      }",
     "      .nc-color-6 {",
-    "        color: mediumturquoise;",
+    "        color: steelblue;",
     "      }",
     "      .nc-color-7 {",
-    "        color: magenta;",
+    "        color: rebeccapurple;",
     "      }",
     "      .nc-color-8 {",
-    "        color: limegreen;",
+    "        color: royalblue;",
     "      }",
     "      .nc-color-9 {",
-    "        color: darkblue;",
+    "        color: darkslateblue;",
     "      }",
     "    </style>",
-    "  </head>" ]
+    "  </head>",
+    "  <body>",
+    "  <h2>TITLE GOES HERE, YOU FOOL</h2>",
+    "  <ul>",
+    "    <li>channel: #meta</li>",
+    "    <li>synopsis: foo bar baz *eyeroll*</li>",
+    "    <li>the players</li>",
+    "    <ul>",
+    "      <li>antagonists: fool </li>",
+    "      <li>chaotic stupid: damned fool</li>",
+    "      <li>protagonists: heroes</li>",
+    "    </ul>",
+    "  </ul>" ]
 
 main = (printHTML . parseWeechatLog) =<< getContents
 
@@ -78,7 +91,6 @@ parseWeechatLog = map parseWeechatLine . lines
 
 printHTML :: [WeechatLine] -> IO ()
 printHTML log = do putStrLn header
-                   putStrLn "<body>"
                    mapM_ printDay days
                    putStrLn "</body>"
                    putStrLn "</html>"
@@ -113,8 +125,8 @@ sigil = (`elem` "@%+")
 -- Weechat default nick hash function = sum of unicode values
 hash = show . (`mod` (length colors)) . sum . map ord
 
-colors = ["cyan","magenta","green","brown","lightblue","default",
-          "lightcyan","lightmagenta","lightgreen","blue"]
+colors = ["darkmagenta","darkgreen","darkred","blue","default",
+          "steelblue","rebeccapurple","royalblue","darkslateblue"]
 
 colorhl allNicks msg
   | firstWord == "" = msg
